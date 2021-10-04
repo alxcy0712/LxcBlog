@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/vue-router.js"></script>
+		<script src="js/axios.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+		<script src="js/main.js"></script>
+	</head>
+	<body>
+		<div id="app">
+
+			<el-row :gutter="24">
+				<el-col :span="8" :offset="8">
+
+					<el-form ref="loginForm" :model="loginForm" label-width="80px">
+						<el-form-item label="账号">
+							<el-input v-model="loginForm.name" placeholder="电话号码 / 邮箱 / 昵称"></el-input>
+						</el-form-item>
+						<el-form-item label="密码">
+							<el-input type="password" v-model="loginForm.password"></el-input>
+						</el-form-item>
+						<el-form-item>
+							<el-row :gutter="15">
+								<el-col :span="5" :offset="3">
+									<el-button type="primary" @click="login('loginForm')">登录</el-button>
+								</el-col>
+								<el-col :span="5" :offset="5">
+									<el-button type="primary">注册</el-button>
+								</el-col>
+							</el-row>
+						</el-form-item>
+					</el-form>
+
+				</el-col>
+			</el-row>
+
+
+
+		</div>
+	</body>
+
+
+
+	<style>
+		#app{
+			margin-top: 10vh;
+		}
+		#app .el-row .el-col .el-form .el-form-item{
+			margin-top: 8vh;
+		}
+	</style>
+
+
+	<script>
+		new Vue({
+			el: '#app',
+			router: router,
+			data() {
+				return {
+					loginForm: {
+						name: '',
+						password: ''
+					},
+					router,
+				}
+			},
+			methods: {
+				login(formName) {
+					console.log(this.loginForm);
+					axios
+						.post('http://localhost:8080/login', this.loginForm)
+						.then(res => {
+							if (res.data == '登入成功') {
+								//会出现浏览器路径更新，却不刷新页面的情况
+								this.$router.push({
+									path: 'index.html'
+								});
+								//用如下语句进行跳转
+								this.$router.go()
+							}
+							console.log(res.data);
+						})
+						.catch(function(error) {
+							console.log(error);
+						});
+				},
+			}
+		})
+	</script>
+</html>

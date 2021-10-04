@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/vue-router.js"></script>
+		<script src="js/axios.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	</head>
+	<body>
+		<div id="app">
+			<div>
+				<p>{{userInfo}}</p>
+			</div>
+			<div>
+				<el-table :data="userData" style="width: 100%">
+					<el-table-column prop="uid" label="序号" width="180">
+					</el-table-column>
+					<el-table-column prop="name" label="姓名" width="180">
+					</el-table-column>
+					<el-table-column prop="nickname" label="昵称" width="180">
+					</el-table-column>
+					<el-table-column prop="email" label="邮箱">
+					</el-table-column>
+					<el-table-column prop="phoneNumber" label="电话号码" width="180">
+					</el-table-column>
+					<el-table-column prop="exp" label="经验" width="180">
+					</el-table-column>
+				</el-table>
+			</div>
+		</div>
+	</body>
+
+
+	<script>
+		new Vue({
+			el: '#app',
+			data() {
+				return {
+					userInfo:'',
+					userData: []
+				}
+			},
+			mounted() {
+				axios
+					.get('http://localhost:8080/user/findAll')
+					.then(res => {
+						this.userData = res.data;
+					})
+					.catch(function(error) {
+						console.log(error);
+					});
+				axios
+					.get('http://localhost:8080/user/getSessionId')
+					// .then(res =>{
+					// 	this.userInfo = res.data;
+					// })
+			}
+		})
+	</script>
+</html>

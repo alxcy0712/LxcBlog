@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+		<script src="js/vue.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/vue-router.js"></script>
+		<script src="js/axios.js"></script>
+		<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	</head>
+	<body>
+
+		<div id="app">
+			<el-container>
+				<el-header>Header</el-header>
+				<el-main>
+					<el-row>
+						<el-col :span="8" :offset="8">
+							<div>
+
+								<el-form :model="userForm" :rules="rules" ref="userForm" label-width="100px">
+									<el-form-item label="姓名" prop="name">
+										<el-input v-model="userForm.name" clearable></el-input>
+									</el-form-item>
+									<el-form-item label="昵称" prop="nickname">
+										<el-input v-model="userForm.nickname" clearable maxlength="30" show-word-limit>
+										</el-input>
+									</el-form-item>
+									<el-form-item label="密码" prop="password">
+										<el-input type="password" v-model="userForm.password" autocomplete="off">
+										</el-input>
+									</el-form-item>
+									<el-form-item label="确认密码" prop="checkPass">
+										<el-input type="password" v-model="userForm.checkPass" autocomplete="off">
+										</el-input>
+									</el-form-item>
+									<el-form-item label="电话号码" prop="phoneNumber">
+										<el-input v-model="userForm.phoneNumber" clearable></el-input>
+									</el-form-item>
+									<el-form-item label="邮箱" prop="email">
+										<el-input v-model="userForm.email" clearable></el-input>
+									</el-form-item>
+									<el-form-item>
+										<el-button type="primary" @click="register('userForm');">立即注册
+										</el-button>
+										<el-button @click="reInput('userForm')">重制</el-button>
+									</el-form-item>
+								</el-form>
+
+							</div>
+						</el-col>
+					</el-row>
+				</el-main>
+				<el-footer>Footer</el-footer>
+			</el-container>
+
+
+			<el-dialog title="提示" :visible.sync="dialogVisible" width="30%">
+				<span>{{message}}</span>
+				<span slot="footer" class="dialog-footer">
+					<el-button @click="dialogVisible = false">关 闭</el-button>
+				</span>
+			</el-dialog>
+
+
+		</div>
+	</body>
+
+
+
+
+	<style>
+		html,
+		body {
+			margin: 0;
+			padding: 0;
+		}
+
+		#app {
+			height: 100%;
+		}
+
+		.el-header,
+		.el-footer {
+			text-align: center;
+			line-height: 60px;
+		}
+
+		.el-main {
+			background-color: #E9EEF3;
+			color: #333;
+			text-align: center;
+			height: 85vh;
+			text-align: 85vh;
+		}
+
+		body>.el-container {
+			margin-bottom: 40px;
+		}
+
+		.el-container:nth-child(5) .el-aside,
+		.el-container:nth-child(6) .el-aside {
+			line-height: 260px;
+		}
+
+		.el-container:nth-child(7) .el-aside {
+			line-height: 320px;
+		}
+	</style>
+
+
+	<script>
+		new Vue({
+			el: '#app',
+			data() {
+				var check = (rule, value, callback) => {
+					if (value === '') {
+						callback(new Error('请输入内容'));
+					} else {
+						callback();
+					}
+				};
+				var validatePass = (rule, value, callback) => {
+					if (value === '') {
+						callback(new Error('请输入密码'));
+					} else {
+						if (this.userForm.checkPass !== '') {
+							this.$refs.userForm.validateField('checkPass');
+						}
+						callback();
+					}
+				};
+				var validatePass2 = (rule, value, callback) => {
+					if (value === '') {
+						callback(new Error('请再次输入密码'));
+					} else if (value !== this.userForm.password) {
+						callback(new Error('两次输入密码不一致!'));
+					} else {
+						callback();
+					}
+				};
+				var checkPhone = (rule, value, callback) => {
+					if (value === '') {
+						callback(new Error('请输入手机号'));
+					} else if (!(/^1[3|4|5|7|8]\d{9}$/.test(value))) {
+						callback(new Error('请输入正确的手机号'))
+					} else {
+						callback();
+					}
+				};
+				var checkEmail = (rule, value, callback) => {
+					if (value === '') {
+						callback(new Error('请输入邮箱'));
+					} else if (!(/^([a-zA-Z\d])((\w|-)+\.?)+@([a-zA-Z\d]+\.)+[a-zA-Z]{2,6}$/.test(value))) {
+						callback(new Error('请输入正确的邮箱'));
+					} else {
+						callback();
+					}
+				};
+				
+				return {
+					userForm: {
+						name: '',
+						nickname: '',
+						password: '',
+						checkPass: '',
+						phoneNumber: '',
+						email: ''
+					},
+					customColor: '#409eff',
+					customColors: [{
+							color: '#f56c6c',
+							percentage: 20
+						},
+						{
+							color: '#e6a23c',
+							percentage: 40
+						},
+						{
+							color: '#5cb87a',
+							percentage: 60
+						},
+						{
+							color: '#1989fa',
+							percentage: 80
+						},
+						{
+							color: '#6f7ad3',
+							percentage: 100
+						}
+					],
+					percentage: 0,
+					message: '',
+					dialogVisible: false,
+					rules: {
+						name: [{
+							request: true,
+							validator: check,
+							trigger: 'blur'
+						}],
+						nickname: [{
+							request: true,
+							validator: check,
+							trigger: 'blur'
+						}],
+						password: [{
+							validator: validatePass,
+							trigger: 'blur'
+						}],
+						checkPass: [{
+							validator: validatePass2,
+							trigger: 'blur'
+						}],
+						phoneNumber: [{
+							validator: checkPhone,
+							trigger: 'blur'
+						}],
+						email: [{
+							validator: checkEmail,
+							trigger: 'blur'
+						}]
+					}
+				}
+			},
+			methods: {
+				register(formName) {
+					this.$refs[formName].validate((valid) => {
+						if (valid) {
+							axios
+								.post('http://localhost:8080/register', this.userForm)
+								.then(res => {
+									console.log(res);
+									this.dialogVisible = true;
+									if (res.data === '添加成功') {
+										this.message = res.data;
+									} else {
+										this.message = res.data;
+									}
+								})
+								.catch(function(error) {
+									console.log(error);
+								});
+						} else {
+							console.log('something error!')
+						}
+					});
+
+				},
+				reInput(formName) {
+					this.$refs[formName].resetFields()
+				}
+			}
+		})
+	</script>
+</html>
