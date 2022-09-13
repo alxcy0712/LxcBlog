@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.lxcblog.mapper.Blog.CommentMapper">
+
+    <select id="getCount" resultType="java.lang.Integer">
+        select count(*)
+        from test.blog_text_comment
+        where text_uid = #{textUid};
+    </select>
+
+    <select id="getChildCount" resultType="java.lang.Integer">
+        select count(*)
+        from test.blog_text_comment
+        where text_uid = #{textUid}
+          and comment_root_uid = #{commentUid};
+    </select>
+
+    <select id="getTopComment" resultType="com.example.lxcblog.entity.Blog.Comment">
+        select comment.comment_uid  as 'commentUid',
+               comment.comment_time as 'commentTime',
+               comment.user_uid     as 'userUid',
+               comment.comment      as 'comment',
+               user.nickname        as 'userName'
+        from test.blog_text_comment as comment,
+             test.user as user
+        where comment.text_uid = #{textUid}
+          and comment.user_uid = user.uid
+          and comment.comment_root_uid is null
+        limit #{start} , 5;
+    </select>
+
+    <select id="getChildComment" resultType="com.example.lxcblog.entity.Blog.Comment">
+        select distinct comment.comment_uid        as 'commentUid',
+                        comment.comment_time       as 'commentTime',
+                        comment.user_uid           as 'userUid',
+                        comment.comment            as 'comment',
+                        user.nickname              as 'userName',
+                        comment.comment_root_uid   as 'commentRootUid',
+                        comment.comment_parent_uid as 'commentParentUid',
+                        user2.nickname             as 'commentParentName'
+        from test.blog_text_comment as comment,
+             test.user as user,
+             test.user as user2,
+             test.blog_text_comment as comment2
+        where #{textUid} = comment.text_uid
+          and comment.user_uid = user.uid
+          and comment2.user_uid = user2.uid
+          and comment.comment_root_uid = #{rootUid}
+          and (comment.comment_parent_uid = comment2.comment_uid and comment2.user_uid = user2.uid
+            or
+               comment.comment_parent_uid is null and comment.user_uid = user2.uid)
+        order by commentTime
+        limit #{start} , 5;
+    </select>
+
+    <insert id="addComment2Text" parameterType="com.example.lxcblog.entity.Blog.Comment">
+        insert into test.blog_text_comment
+        values (#{commentUid}, #{userUid}, #{textUid}, #{myComment}, null, null, now());
+    </insert>
+
+    <insert id="addComment2TopComment" parameterType="com.example.lxcblog.entity.Blog.Comment">
+        insert into test.blog_text_comment
+        values (#{commentUid} , #{userUid} , #{textUid} , #{myComment} , #{topCommentUid} , null , now());
+    </insert>
+
+    <insert id="addComment2ChildComment" parameterType="com.example.lxcblog.entity.Blog.Comment">
+        insert into test.blog_text_comment
+        values (#{commentUid} , #{userUid} , #{textUid} , #{myComment} , #{topCommentUid} , #{parentCommentUid} , now());
+    </insert>
+</mapper>

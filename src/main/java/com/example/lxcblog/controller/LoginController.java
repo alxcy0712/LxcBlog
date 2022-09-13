@@ -1,71 +1,81 @@
 package com.example.lxcblog.controller;
 
 
+import com.example.lxcblog.entity.Result;
 import com.example.lxcblog.entity.User;
+import com.example.lxcblog.entity.UserResult;
 import com.example.lxcblog.mapper.UserMapper;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @RestController
 @CrossOrigin
+@RequestMapping("/api")
 public class LoginController {
+
+    Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private UserMapper userMapper;
 
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private RedisTemplate redisTemplate;
 
 
     /**
      * 注册
      */
     @PostMapping("/register")
-    public String addUser(@RequestBody User user){
+    public Result<?> addUser(@RequestBody User user) {
         /**
          * 整体步骤：查询昵称是否违规->
          * 200 -- 成功
          * 400 -- 存在相同的昵称
          * 401 -- 存在相同的邮箱
          */
-        int state = 0 ;
-        if(userMapper.checkSameNickName(user.getNickname()) != null){
+        int state = 0;
+        if (userMapper.checkSameNickName(user.getNickName()) != null) {
             state = 400;
-        }else if(userMapper.checkSamePhone(user.getPhoneNumber()) != null){
+        } else if (userMapper.checkSamePhone(user.getPhoneNumber()) != null) {
             state = 401;
-        }else if(userMapper.checkSameEmail(user.getEmail()) != null){
+        } else if (userMapper.checkSameEmail(user.getEmail()) != null) {
             state = 402;
-        }else if(!"0".equals(userMapper.checkBannedText(user.getNickname()))){
+        } else if (!"0".equals(userMapper.checkBannedText(user.getNickName()))) {
             state = 403;
-        }
-        else{
+        } else {
             state = 200;
         }
 
         System.out.println(state);
 
-        String res = null;
-        switch(state){
-            case 200:res = "添加成功";userMapper.addUser(user);break;
-            case 400:res = "存在相同的昵称";break;
-            case 401:res = "存在相同的电话号码";break;
-            case 402:res = "存在相同的邮箱";break;
-            case 403:res = "存在违禁词汇";break;
-            default: res = "未知错误";break;
+
+        switch (state) {
+            case 200:
+                userMapper.addUser(user);
+                UserResult ur = new UserResult(user);
+                return Result.success(ur);
+            case 400:
+                return Result.error("0", "存在相同的昵称", "存在相同的昵称");
+            case 401:
+                return Result.error("0", "存在相同的电话号码", "存在相同的电话号码");
+            case 402:
+                return Result.error("0", "存在相同的邮箱", "存在相同的邮箱");
+            case 403:
+                return Result.error("0", "存在违禁词汇", "存在违禁词汇");
+            default:
+                return Result.error("0", "未知错误", "未知错误");
         }
-        return res;
     };
 
     /**
      * 登录
      */
-    static class TempUser{
+    static class TempUser {
         private String name;
         private String password;
 
@@ -73,31 +83,47 @@ public class LoginController {
             return name;
         }
 
-
         public String getPassword() {
             return password;
         }
     }
 
+    /*
+     * 0 失败
+     * 非0 成功
+     */
     @PostMapping("/login")
-    public String login(HttpServletRequest request ,@RequestBody TempUser user1){
+    public Result<?> login(@RequestBody TempUser user1) {
+
         String name = user1.getName();
         String password = user1.getPassword();
-        if("".equals(user1.name) || "".equals(user1.password)){
-            return "用户输入错误";
+        User user = userMapper.login(name, password);
+        int res = 0;
+        if (user != null) {
+            redisTemplate.opsForList().leftPush("loginUser" + user.getUid() , String.valueOf(user.getUid()));
+            redisTemplate.opsForList().leftPush("loginUser" + user.getUid() , String.valueOf(user.getNickName()));
+            res = 1;
         }
-        User user = userMapper.login(name,password);
-        String res = "";
-
-
-        if(user!=null){
-            request.getSession().setAttribute("loginUser"+user.getUid(),user.getUid());
-            redisTemplate.opsForValue().set("loginUser"+user.getUid(), user.getNickname());
-            res = "登入成功";
-        }else{
-            res = "error";
+        if (res == 1) {
+            UserResult ur = new UserResult(user);
+            return Result.success(ur);
+        } else {
+            return Result.error("0", "失败", "用户名密码有误");
         }
-        return res;
+    }
+
+    @PostMapping("/logout")
+    public Result<?> logout(@RequestBody User user) {
+
+//        ============= 以下内容为1.0版本 =======================
+        if (user != null) {
+            redisTemplate.delete("loginUser" + user.getUid());
+            return Result.success(user);
+        } else {
+            System.out.println("error");
+            return Result.error("0", "失败", "未传入任何参数");
+        }
+        
     }
 
 }

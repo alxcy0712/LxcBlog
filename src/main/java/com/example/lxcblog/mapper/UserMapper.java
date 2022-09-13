@@ -23,6 +23,8 @@ public interface UserMapper {
     User checkSamePhone(String phone);
     //查询是否有违规词汇bannedText
     String checkBannedText(String name);
+    //通过用户名返回个人信息
+    User getByUserName(String name);
 
 
     /**

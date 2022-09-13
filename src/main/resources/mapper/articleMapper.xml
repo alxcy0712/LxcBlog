@@ -50,7 +50,12 @@
         values ( #{textUid} , #{userUid} , #{text} , #{title} , now() , now())
     </insert>
 
-
+<!--修改文章-->
+    <update id="updateText" parameterType="com.example.lxcblog.entity.Blog.Article">
+        update blog_text
+        set text = #{text} , update_time = now()
+        where text_uid = #{textUid};
+    </update>
 
 
 

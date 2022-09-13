@@ -14,7 +14,7 @@
     <!--  注册阶段  !-->
     <!-- 查询是否有相同的昵称!-->
     <select id="checkSameNickName" resultType="com.example.lxcblog.entity.User">
-        select * from user where nickname = #{nickname} limit 1;
+        select * from user where nickname = #{nickName} limit 1;
     </select>
 
     <!-- 查询是否有相同的邮箱!-->
@@ -24,25 +24,31 @@
 
     <!-- 查询是否有相同的电话号码!-->
     <select id="checkSamePhone" resultType="com.example.lxcblog.entity.User">
-        select * from user where phoneNumber = #{phone} limit 1;
+        select * from user where phone_number = #{phone} limit 1;
     </select>
 
     <!-- 查询是否有违禁词!-->
     <select id="checkBannedText" resultType="String">
-        select locate(text,#{nickname}) from banned_text limit 1;
+        select locate(text,#{nickName}) from banned_text limit 1;
     </select>
+
+<!--    通过用户名返回个人信息-->
+    <select id="getByUserName" resultType="com.example.lxcblog.entity.User">
+        select * from user where nickname = #{nickName};
+    </select>
+
 
     <!-- 添加新的用户信息!-->
     <insert id="addUser" parameterType="com.example.lxcblog.entity.User">
-        insert into user (email,exp,name,nickname,password,phoneNumber)
-        values (#{email} , 0 , #{name} , #{nickname} , #{password} , #{phoneNumber});
+        insert into user (email,exp,nickname,password,phone_number)
+        values (#{email} , 0  , #{nickName} , #{password} , #{phoneNumber});
     </insert>
 
 
 
     <!--  登录阶段  !-->
     <select id="login" resultType="com.example.lxcblog.entity.User">
-        select *from user where phoneNumber = #{name} or email = #{name} or nickname = #{name} and password = #{password}
+        select *from user where phone_number = #{name} or email = #{name} or nickname = #{name} and password = #{password}
     </select>
 
 </mapper>
