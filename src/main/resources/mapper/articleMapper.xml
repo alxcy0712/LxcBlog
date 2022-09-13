@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.lxcblog.mapper.Blog.ArticleMapper">
+<!--    得到文章总数或最大上限 暂定上限为140个-->
+    <select id="getArticleNumber" resultType="java.lang.Integer">
+        select
+               count(text_uid)
+        from
+               (select text_uid from blog_text limit 140) as temp;
+    </select>
+
+<!--    返回7条信息-->
+    <select id="getSevenInfo" resultType="com.example.lxcblog.entity.Blog.Article">
+        select
+                b.text_uid      as   'textUid',
+                u.uid           as   'userUid',
+                b.text_title    as   'title',
+                u.nickname      as   'userNickName',
+                b.build_time    as   'buildTime'
+        from
+                blog_text       as   b,
+                user            as   u
+        where
+                u.uid = b.user_uid
+        limit #{from},7;
+    </select>
+
+<!--    得到text文本内容-->
+    <select id="getText" resultType="com.example.lxcblog.entity.Blog.Article">
+        select
+                b.text_title    as   'title',
+                b.text          as   'text',
+                b.build_time    as   'buildTime',
+                b.update_time   as   'updateTime',
+                u.nickname      as   'userNickName'
+        from
+                blog_text       as   b,
+                user            as   u
+        where
+                b.text_uid = #{id}
+          and   b.user_uid = u.uid;
+    </select>
+
+<!--    添加新的文章-->
+    <insert id="addText" parameterType="com.example.lxcblog.entity.Blog.Article">
+        insert into
+            blog_text
+        values ( #{textUid} , #{userUid} , #{text} , #{title} , now() , now())
+    </insert>
+
+
+
+
+
+
+
+</mapper>
